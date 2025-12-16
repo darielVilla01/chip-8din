@@ -29,25 +29,30 @@ or :: proc(x: u4, y:u4) { vm.v[x] |= vm.v[y] }
 and :: proc(x: u4, y:u4) { vm.v[x] &= vm.v[y] }
 xor :: proc(x: u4, y:u4) { vm.v[x] ~= vm.v[y] }
 add_vx_vy :: proc(x: u4, y:u4) { 
-    vm.v[0xf] = (vm.v[x] + vm.v[y]) < vm.v[x] ? 1: 0
+    temp := vm.v[x]
     vm.v[x] += vm.v[y] 
+    vm.v[0xf] = (temp + vm.v[y]) < temp ? 1: 0
 }
 add_vx_nn :: proc(x: u4, nn: u8) { vm.v[x] += nn }
 sub_vx :: proc(x: u4, y:u4) { 
-    vm.v[0xf] = vm.v[x] < vm.v[y] ? 1: 0
+    temp := vm.v[x]
     vm.v[x] -= vm.v[y] 
+    vm.v[0xf] = temp < vm.v[y] ? 0: 1
 }
 sub_vy :: proc(x: u4, y:u4) { 
-    vm.v[0xf] = vm.v[y] < vm.v[x] ? 1: 0
+    temp := vm.v[y]
     vm.v[x] = vm.v[y] - vm.v[x]
+    vm.v[0xf] = temp < vm.v[x] ? 0: 1
 }
 shiftr :: proc(x: u4, y:u4) {
-    vm.v[0xf] = vm.v[y] & 1
+    temp := vm.v[y]
     vm.v[x] = vm.v[y] >> 1
+    vm.v[0xf] = temp & 1
 }
 shiftl :: proc(x: u4, y:u4) {
-    vm.v[0xf] = (vm.v[y] & 0x7f) >> 7
+    temp := vm.v[y]
     vm.v[x] = vm.v[y] << 1
+    vm.v[0xf] = (temp & 0x80) >> 7
 }
 load_i_nnn :: proc(nnn: u12) { vm.i = nnn }
 jump :: proc(nnn: u12) { vm.pc = nnn }
