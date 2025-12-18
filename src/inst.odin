@@ -1,5 +1,6 @@
 package chip_8din
 
+import "core:math/rand"
 import "core:fmt"
 
 u4 :: distinct u8
@@ -57,12 +58,11 @@ shiftl :: proc(x: u4, y:u4) {
 load_i_nnn :: proc(nnn: u12) { vm.i = nnn }
 jump :: proc(nnn: u12) { vm.pc = nnn }
 jumpz :: proc(nnn: u12) { vm.pc = (nnn + u12(vm.v[0])) % 0x1000 }
-
+rand :: proc(x: u4, nn: u8) { vm.v[x] = cast(u8)rand.uint_max(256) & nn }
 draw :: proc(x, y, n: u4) { vm.v[0xf] = draw_sprite(vm.v[x], vm.v[y], vm.memory[vm.i: vm.i + u12(n)]) }
 bkey :: proc(x: u4) { if is_key_pressed(vm.v[x]) do vm.pc += 2}
 bnkey :: proc(x: u4) { if !is_key_pressed(vm.v[x]) do vm.pc += 2}
 get_key :: proc(x: u4) { 
-    fmt.printfln("waiting for key in v%X", x)
     if key, pressed := get_keypad_input(); pressed {
         vm.v[x] = key
     } else {
@@ -70,6 +70,7 @@ get_key :: proc(x: u4) {
     }
 }
 set_delay :: proc(x: u4) { vm.delay = vm.v[x] }
+set_sound :: proc(x: u4) { vm.sound = vm.v[x] }
 get_delay :: proc(x: u4) { vm.v[x] = vm.delay}
 add_i_vx :: proc(x: u4) { vm.i += u12(vm.v[x]) }
 bcd :: proc(x: u4) {

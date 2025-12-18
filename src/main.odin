@@ -27,7 +27,7 @@ main :: proc() {
 
         if cycles % 60 == 0 {
             display_render()
-            decrement_delay()
+            decrement_timers()
         }
     }
     display_deinit()

@@ -28,8 +28,9 @@ check_bounds :: proc() -> bool{
     return vm.pc > 0x1ff && vm.pc < 0xea0
 }
 
-decrement_delay :: proc() {
+decrement_timers :: proc() {
     if vm.delay != 0 do vm.delay -= 1
+    if vm.sound != 0 do vm.sound -= 1
 }
 
 fetch_instruction :: proc() -> u16 {
@@ -107,7 +108,10 @@ execute_instruction :: proc(opcode: u16) {
     case 0xb000..=0xbfff:
         nnn :=  get_nnn_addr(opcode)
         jumpz(nnn)
-    // case 0xc000:
+    case 0xc000..=0xcfff:
+        x := get_vx_register(opcode)
+        nn :=  get_nn_value(opcode)
+        rand(x, nn)
     case 0xd000..=0xdfff:
         x := get_vx_register(opcode)
         y := get_vy_register(opcode)
@@ -128,6 +132,7 @@ execute_instruction :: proc(opcode: u16) {
         if nn == 0x07 { get_delay(x) } else
         if nn == 0x0a { get_key(x) } else
         if nn == 0x15 { set_delay(x) } else
+        if nn == 0x18 { set_sound(x) } else
         if nn == 0x1e { add(x) } else
         if nn == 0x33 { bcd(x) } else
         if nn == 0x55 { save(x) } else
