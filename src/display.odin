@@ -1,49 +1,14 @@
 package chip_8din
 
-import "core:math"
 import rl "vendor:raylib"
 
 DISPLAY_WIDTH :: 0x40
 DISPLAY_HEIGHT :: 0x20
 PIXEL_SCALE :: 10
 
-beep: rl.AudioStream
-sineIdx: f64
-
 display_init :: proc() {
     rl.InitWindow(DISPLAY_WIDTH * PIXEL_SCALE, DISPLAY_HEIGHT * PIXEL_SCALE, "chip-8din")
     rl.SetTargetFPS(60)
-}
-
-audio_input_callback ::  proc "c" (buffer: rawptr, frames: u32) {
-    incr: f64 = 440 / 44100
-    d: [^]i16 = cast(^i16)buffer
-
-    for i: u32 = 0; i < frames; i += 1 {
-        d[i] = i16(32000 * math.sin(2*math.PI*sineIdx))
-        sineIdx += incr
-        if sineIdx > 1.0 do sineIdx = -1.0
-    }
-}
-
-audio_init :: proc() {
-    rl.InitAudioDevice()
-    rl.SetAudioStreamBufferSizeDefault(4096)
-    beep = rl.LoadAudioStream(44100, 16, 1)
-    rl.SetAudioStreamCallback(beep, audio_input_callback)
-}
-
-audio_play :: proc() {
-    if vm.sound > 1 {
-        rl.PlayAudioStream(beep)
-    } else {
-        rl.StopAudioStream(beep)
-    }
-}
-
-audio_deinit :: proc() {
-    rl.UnloadAudioStream(beep)
-    rl.CloseAudioDevice()
 }
 
 display_deinit :: proc() {
