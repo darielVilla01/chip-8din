@@ -19,12 +19,16 @@ main :: proc() {
     display_init()
     for check_bounds() && !display_running() {
         opcode := fetch_instruction()
-        fmt.printfln("opcode: %X, v-regs %x, I-reg %x, pc %x, cycles %d",
-            opcode, vm.v, vm.i, vm.pc, cycles)
         execute_instruction(opcode)
 
-        display_render()
         cycles += 1
+        fmt.printfln("opcode: %X, v-regs %x, I-reg %x, delay %d, pc %x, cycles %d",
+            opcode, vm.v, vm.i, vm.delay, vm.pc, cycles)
+
+        if cycles % 60 == 0 {
+            display_render()
+            decrement_delay()
+        }
     }
     display_deinit()
 }

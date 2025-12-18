@@ -28,6 +28,10 @@ check_bounds :: proc() -> bool{
     return vm.pc > 0x1ff && vm.pc < 0xea0
 }
 
+decrement_delay :: proc() {
+    if vm.delay != 0 do vm.delay -= 1
+}
+
 fetch_instruction :: proc() -> u16 {
     inst := vm.memory[vm.pc: vm.pc + 2]
     vm.pc += 2
@@ -102,17 +106,28 @@ execute_instruction :: proc(opcode: u16) {
         load(nnn)
     case 0xb000..=0xbfff:
         nnn :=  get_nnn_addr(opcode)
-        jump(nnn)
+        jumpz(nnn)
     // case 0xc000:
     case 0xd000..=0xdfff:
         x := get_vx_register(opcode)
         y := get_vy_register(opcode)
         n := get_n_value(opcode)
         draw(x, y, n)
-    // case 0xe000:
+    case 0xe000..=0xefff:
+        x := get_vx_register(opcode)
+        nn := get_nn_value(opcode)
+        if nn == 0x9e { bkey(x) } else
+        if nn == 0xa1 { bnkey(x) } else 
+        {
+            fmt.printfln("opcode %X not implemented", opcode)
+            vm.pc = 0
+        }
     case 0xf000..=0xffff:
         x := get_vx_register(opcode)
         nn := get_nn_value(opcode)
+        if nn == 0x07 { get_delay(x) } else
+        if nn == 0x0a { get_key(x) } else
+        if nn == 0x15 { set_delay(x) } else
         if nn == 0x1e { add(x) } else
         if nn == 0x33 { bcd(x) } else
         if nn == 0x55 { save(x) } else
