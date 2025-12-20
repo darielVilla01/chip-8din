@@ -73,6 +73,7 @@ set_delay :: proc(x: u4) { vm.delay = vm.v[x] }
 set_sound :: proc(x: u4) { vm.sound = vm.v[x] }
 get_delay :: proc(x: u4) { vm.v[x] = vm.delay}
 add_i_vx :: proc(x: u4) { vm.i += u12(vm.v[x]) }
+hex :: proc(x: u4) { vm.i = 0x100 + (u12(vm.v[x]) * 5) }
 bcd :: proc(x: u4) {
     vm.memory[vm.i] = vm.v[x] / 100
     vm.memory[vm.i + 1] = (vm.v[x] / 10) % 10
