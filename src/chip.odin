@@ -3,12 +3,18 @@ package chip_8din
 import "core:os"
 import "core:fmt"
 
+Chip8_Variant :: enum {
+    CHIP_8, SUPER, XO
+}
+
 Chip8 :: struct {
+    variant: Chip8_Variant,
     display: [2048]byte,
     memory: [4096]byte,
     delay, sound: byte,
     v: [16]byte,
     i, pc, sp: u12,
+    wait: bool
 }
 
 
@@ -37,6 +43,7 @@ chip8_init :: proc(file: string) {
         copy(vm.memory[0x100:0x150], hex_font)
         copy(vm.memory[0x200:0xea0], file)
         delete(file)
+        vm.variant = .CHIP_8
         vm.pc = 0x200
         vm.sp = 0xfff
     } else {
@@ -127,7 +134,10 @@ execute_instruction :: proc(opcode: u16) {
         load(nnn)
     case 0xb000..=0xbfff:
         nnn :=  get_nnn_addr(opcode)
-        jumpz(nnn)
+        if vm.variant == .CHIP_8 { 
+            jump(0, nnn) 
+            return
+        }
     case 0xc000..=0xcfff:
         x := get_vx_register(opcode)
         nn :=  get_nn_value(opcode)
@@ -137,6 +147,7 @@ execute_instruction :: proc(opcode: u16) {
         y := get_vy_register(opcode)
         n := get_n_value(opcode)
         draw(x, y, n)
+        if vm.variant == .CHIP_8 do vm.wait = true
     case 0xe000..=0xefff:
         x := get_vx_register(opcode)
         nn := get_nn_value(opcode)

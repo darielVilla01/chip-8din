@@ -6,6 +6,8 @@ DISPLAY_WIDTH :: 0x40
 DISPLAY_HEIGHT :: 0x20
 PIXEL_SCALE :: 10
 
+
+
 display_init :: proc() {
     rl.InitWindow(DISPLAY_WIDTH * PIXEL_SCALE, DISPLAY_HEIGHT * PIXEL_SCALE, "chip-8din")
     rl.SetTargetFPS(60)
@@ -28,6 +30,7 @@ display_render :: proc() {
         y := (i32(i) / DISPLAY_WIDTH) * PIXEL_SCALE
         if bool(p) do rl.DrawRectangle(x, y, PIXEL_SCALE, PIXEL_SCALE, rl.WHITE)
     }
+    vm.wait = false
 }
 
 draw_sprite :: proc(x, y: u8, sprite: []byte) -> (flag: byte) {
@@ -35,7 +38,9 @@ draw_sprite :: proc(x, y: u8, sprite: []byte) -> (flag: byte) {
         pixels: [8]byte
         value := sprite[i]
         get_pixels(pixels[:], value)
+        if vm.variant == .CHIP_8 && y < 0x20 && y + u8(i) >= 0x20 do break
         for j in 0..<8 {
+            if vm.variant == .CHIP_8 && x < 0x40 && x + u8(j) >= 0x40 do break
             pos_x := u16(x + u8(j)) % 0x40
             pos_y := u16(y + u8(i)) % 0x20
             pos_d := pos_x + (0x40 * pos_y)

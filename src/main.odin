@@ -18,12 +18,15 @@ main :: proc() {
     cycles := 0
     display_init()
     for check_bounds() && !display_running() {
-        opcode := fetch_instruction()
-        execute_instruction(opcode)
+        opcode: u16
+        if !vm.wait {
+            opcode = fetch_instruction()
+            execute_instruction(opcode)
+        }
 
         cycles += 1
-        fmt.printfln("opcode: %X, v-regs %x, I-reg %x, delay %d, pc %x, cycles %d",
-            opcode, vm.v, vm.i, vm.delay, vm.pc, cycles)
+        fmt.printfln("opcode: %X, v-regs %x, I-reg %x, delay %d, pc %x",
+            opcode, vm.v, vm.i, vm.delay, vm.pc)
 
         if cycles % 60 == 0 {
             display_render()
