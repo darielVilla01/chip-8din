@@ -69,7 +69,7 @@ load_i_nnn :: proc(nnn: u12) { vm.i = nnn }
 jump_nnn :: proc(nnn: u12) { vm.pc = nnn }
 jump_vx_nnn :: proc(x: u4, nnn: u12) { vm.pc = (nnn + u12(vm.v[x])) % 0x1000 }
 rand :: proc(x: u4, nn: u8) { vm.v[x] = cast(u8)rand.uint_max(256) & nn }
-draw :: proc(x, y, n: u4) { vm.v[0xf] = draw_sprite(vm.v[x], vm.v[y], vm.memory[vm.i: vm.i + u12(n)]) }
+draw :: proc(x, y, n: u4) { vm.v[F] = draw_sprite(vm.v[x], vm.v[y], vm.memory[vm.i: vm.i + u12(n)]) }
 bkey :: proc(x: u4) { if is_key_pressed(vm.v[x]) do vm.pc += 2}
 bnkey :: proc(x: u4) { if !is_key_pressed(vm.v[x]) do vm.pc += 2}
 get_key :: proc(x: u4) { 
