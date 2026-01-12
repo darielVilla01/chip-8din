@@ -4,7 +4,7 @@ Simple chip8 interpreter written in Odin and using Raylib
 ## Usage
 ```
 ./chip8din
-Usage: chip8din \[OPTIONS...\] rom_file
+Usage: chip8din [OPTIONS...] rom_file
 
 Options:
 -set-fps frames         Set the frames per second of the display (default: 60)
