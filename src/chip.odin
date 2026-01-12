@@ -51,7 +51,7 @@ chip8_init :: proc(file: string) {
     }
 }
 
-check_bounds :: proc() -> bool{
+pc_is_valid :: proc() -> bool{
     return vm.pc > 0x1ff && vm.pc < 0xea0
 }
 
