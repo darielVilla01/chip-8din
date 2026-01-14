@@ -6,6 +6,7 @@ import "core:fmt"
 import "core:os"
 
 VM_Config :: struct {
+    variant: Chip8_Variant,
     file_path: string,
     fps, ipf: int,
 }
@@ -29,15 +30,17 @@ vm_configuration :: proc() -> (config: VM_Config) {
         return
     }
     for i := 1; i < len(args); i += 1 {
-        // if args[i] == "-variant" {
-        //     i += 1
-        //     variant := args[i]
-        //     if variant == "CHIP-8" do vm.variant == .CHIP_8 else
-        //     if variant == "SUPER" do vm.variant == .SUPER else
-        //     if variant == "XO" do vm.variant == .XO else {
-        //         fmt.printfln("Error: Invalid `{s}` variant given", transmute([]u8)variant)
-        //     }
-        // }
+        if args[i] == "-variant" {
+            i += 1
+            variant := args[i]
+            if variant == "chip8" do config.variant = .CHIP_8; else
+            if variant == "super" do config.variant = .SUPER; else
+            if variant == "xo" do config.variant = .XO; 
+            else {
+                fmt.printfln("Error: Invalid `{s}` variant given", transmute([]u8)variant)
+                return VM_Config{}
+            }
+        }
         if args[i] == "-set-fps" {
             i += 1
             value_str := transmute([]u8)args[i]
@@ -47,7 +50,7 @@ vm_configuration :: proc() -> (config: VM_Config) {
                 return VM_Config{}
             }
         } else
-        if args[i] == "-set-ipf" {
+        if args[i] == "-set-cpf" {
             i += 1
             value_str := transmute([]u8)args[i]
             if value, ok := u8_slice_to_int(value_str); ok do config.ipf = value;
@@ -79,8 +82,9 @@ Simple implementation of a Chip-8 Virtual Machine written Odin
 Usage: ./chip8din [OPTIONS...] rom_file
 
 Options:
--set-fps frames         Set the frames per second of the display (default: 60)
--set-ipf instructions   Set the instructions per frame of the virtual machine (default: 60)
--help                   Show this help message
+-variant [chip8|super|xo]   Set the chip8 variant to emulate (default: chip8)
+-set-fps frames             Set the frames per second of the display (default: 60)
+-set-cpf cycles             Set the cycles per frame of the virtual machine (default: 60)
+-help                       Show this help message
     `)
 }

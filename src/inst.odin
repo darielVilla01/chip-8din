@@ -55,14 +55,14 @@ sub_vy :: proc(x: u4, y:u4) {
     vm.v[x] = vm.v[y] - vm.v[x]
     vm.v[F] = temp < vm.v[x] ? 0: 1
 }
-shiftr :: proc(x: u4, y:u4) {
-    temp := vm.v[y]
-    vm.v[x] = vm.v[y] >> 1
+shiftr :: proc(x: u4, y:u4) { 
+    temp := vm.variant != .SUPER ? vm.v[y]: vm.v[x]
+    vm.v[x] = temp >> 1
     vm.v[F] = temp & 1
 }
 shiftl :: proc(x: u4, y:u4) {
-    temp := vm.v[y]
-    vm.v[x] = vm.v[y] << 1
+    temp := vm.variant != .SUPER ? vm.v[y]: vm.v[x]
+    vm.v[x] = temp << 1
     vm.v[F] = (temp & 0x80) >> 7
 }
 load_i_nnn :: proc(nnn: u12) { vm.i = nnn }
@@ -91,11 +91,11 @@ bcd :: proc(x: u4) {
 }
 save :: proc(x: u4) {
     for i: u12 = 0; i <= u12(x); i += 1 do vm.memory[vm.i + i] = vm.v[i]
-    vm.i += u12(x) + 1
+    if vm.variant != .SUPER do vm.i += u12(x) + 1
 }
 load_vx :: proc(x: u4) {
     for i: u12 = 0; i <= u12(x); i += 1 do vm.v[i] = vm.memory[vm.i + i]
-    vm.i += u12(x) + 1
+    if vm.variant != .SUPER do vm.i += u12(x) + 1
 }
 
 /// Instruction groups

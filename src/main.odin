@@ -6,7 +6,7 @@ main :: proc() {
     config := vm_configuration()
     if config == (VM_Config{}) do return
 
-    chip8_init(config.file_path)
+    chip8_init(config)
     
     if !pc_is_valid() do return
 

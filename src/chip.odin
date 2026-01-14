@@ -3,25 +3,23 @@ package chip_8din
 import "core:os"
 import "core:fmt"
 
-Chip8_Variant :: enum {
-    CHIP_8, SUPER, XO
-}
+Chip8_Variant :: enum { CHIP_8, SUPER, XO }
 
 Chip8 :: struct {
     variant: Chip8_Variant,
-    display: [2048]byte,
-    memory: [4096]byte,
+    display: [0x2000]byte,
+    memory: [0x1000]byte,
     delay, sound: byte,
     v: [16]byte,
     i, pc, sp: u12,
-    wait: bool
+    wait: bool,
 }
 
 
 vm: Chip8
 
-chip8_init :: proc(file: string) {
-    if file, success := os.read_entire_file(file); success {
+chip8_init :: proc(config: VM_Config) {
+    if file, success := os.read_entire_file(config.file_path); success {
         hex_font: []byte = {
             0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
             0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -43,7 +41,7 @@ chip8_init :: proc(file: string) {
         copy(vm.memory[0x100:0x150], hex_font)
         copy(vm.memory[0x200:0xea0], file)
         delete(file)
-        vm.variant = .CHIP_8
+        vm.variant = config.variant
         vm.pc = 0x200
         vm.sp = 0xfff
     } else {
@@ -74,6 +72,22 @@ execute_instruction :: proc(opcode: u16) {
         clear()
     case 0x00ee:
         ret()
+    case 0x00fd:
+        vm.pc = 0
+    case 0x00fe:
+        if vm.variant != .CHIP_8 {
+            display_lores()
+        } else {
+            fmt.printfln("Invalid opcode %X", opcode)
+            vm.pc = 0
+        }
+    case 0x00ff:
+        if vm.variant != .CHIP_8 {
+            display_hires()
+        } else {
+            fmt.printfln("Invalid opcode %X", opcode)
+            vm.pc = 0
+        }
     case 0x1000..=0x1fff:
         nnn := get_nnn_addr(opcode)
         jump(nnn)
@@ -134,9 +148,11 @@ execute_instruction :: proc(opcode: u16) {
         load(nnn)
     case 0xb000..=0xbfff:
         nnn :=  get_nnn_addr(opcode)
-        if vm.variant == .CHIP_8 { 
+        if vm.variant != .SUPER { 
             jump(0, nnn) 
-            return
+        } else {
+            x := get_vx_register(opcode)
+            jump(x, nnn) 
         }
     case 0xc000..=0xcfff:
         x := get_vx_register(opcode)
