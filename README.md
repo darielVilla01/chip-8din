@@ -7,9 +7,10 @@ Simple chip8 interpreter written in Odin and using Raylib
 Usage: chip8din [OPTIONS...] rom_file
 
 Options:
--set-fps frames         Set the frames per second of the display (default: 60)
--set-ipf instructions   Set the instructions per frame of the virtual machine (default: 60)
--help                   Show this help message
+-variant [chip8|super|xo]   Set the chip8 variant to emulate (default: chip8)
+-set-fps frames             Set the frames per second of the display (default: 60)
+-set-ipf instructions       Set the instructions per frame of the virtual machine (default: 60)
+-help                       Show this help message
 ```
 
 ## Tests
