@@ -12,7 +12,7 @@ Chip8 :: struct {
     delay, sound: byte,
     v: [16]byte,
     i, pc, sp: u12,
-    wait: bool,
+    hires, wait: bool,
 }
 
 
@@ -68,10 +68,32 @@ fetch_instruction :: proc() -> u16 {
 
 execute_instruction :: proc(opcode: u16) {
     switch opcode {
+    case 0x00c0..=0x00cf:
+        if vm.variant != .CHIP_8 {
+            n := get_n_value(opcode)
+            scroll_down(n)
+        } else {
+            fmt.printfln("Invalid opcode %X", opcode)
+            vm.pc = 0
+        }
     case 0x00e0:
         clear()
     case 0x00ee:
         ret()
+    case 0x00fb:
+        if vm.variant != .CHIP_8 {
+            scroll_right()
+        } else {
+            fmt.printfln("Invalid opcode %X", opcode)
+            vm.pc = 0
+        }
+    case 0x00fc:
+        if vm.variant != .CHIP_8 {
+            scroll_left()
+        } else {
+            fmt.printfln("Invalid opcode %X", opcode)
+            vm.pc = 0
+        }
     case 0x00fd:
         vm.pc = 0
     case 0x00fe:

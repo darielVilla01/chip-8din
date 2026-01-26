@@ -71,6 +71,7 @@ display_hires :: proc() {
     when ODIN_DEBUG {
         fmt.printfln("hires %d, %d", width_res, height_res)
     }
+    vm.hires = true
 }
 
 display_lores :: proc() {
@@ -81,6 +82,7 @@ display_lores :: proc() {
     when ODIN_DEBUG {
         fmt.printfln("lores %d, %d", width_res, height_res)
     }
+    vm.hires = false
 }
 
 display_render :: proc() {
