@@ -12,6 +12,7 @@ main :: proc() {
 
     cycles := 0
     display_init(config.fps)
+    sound_init()
     for pc_is_valid() && display_running() {
         if !vm.wait {
             opcode := fetch_instruction()
@@ -27,8 +28,9 @@ main :: proc() {
         if cycles % 60 == 0 do decrement_timers()
         if cycles % config.ipf == 0 { 
             display_render()
-            display_sound()
+            sound_play()
         }
     }
     display_deinit()
+    sound_deinit()
 }
