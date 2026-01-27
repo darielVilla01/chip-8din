@@ -6,14 +6,13 @@ import "core:fmt"
 import "core:math"
 import "core:c"
 
-DISPLAY_WIDTH :: 0x400
-DISPLAY_HEIGHT :: 0x200
 PIXEL_SCALE :: 16
+DISPLAY_WIDTH :: 0x40 * PIXEL_SCALE
+DISPLAY_HEIGHT :: 0x20 * PIXEL_SCALE
 
 MAX_SAMPLES_PER_UPDATE :: 4096
 
-@(private="file")
-display: []byte
+ScrollDir :: enum {Left, Right, Up, Down}
 
 @(private="file")
 pixel_res, width_res, height_res: i32
@@ -64,25 +63,21 @@ display_sound :: proc() {
 display_running :: proc() -> bool { return !rl.WindowShouldClose() }
 
 display_hires :: proc() {
-    display = vm.display[:]
     pixel_res = PIXEL_SCALE / 2
     width_res = DISPLAY_WIDTH / pixel_res
     height_res = DISPLAY_HEIGHT / pixel_res
     when ODIN_DEBUG {
         fmt.printfln("hires %d, %d", width_res, height_res)
     }
-    vm.res = {128,64}
 }
 
 display_lores :: proc() {
-    display = vm.display[:2048]
     pixel_res = PIXEL_SCALE
     width_res = DISPLAY_WIDTH / pixel_res
     height_res = DISPLAY_HEIGHT / pixel_res
     when ODIN_DEBUG {
         fmt.printfln("lores %d, %d", width_res, height_res)
     }
-    vm.res = {64,32}
 }
 
 display_render :: proc() {
@@ -91,12 +86,43 @@ display_render :: proc() {
 
     rl.ClearBackground(rl.BLACK) 
 
-    for p, i in display {
+    for p, i in vm.display {
         x := (i32(i) % width_res) * pixel_res
         y := (i32(i) / width_res) * pixel_res
         if bool(p) do rl.DrawRectangle(x, y, pixel_res, pixel_res, rl.WHITE)
     }
     vm.wait = false
+}
+
+scroll_pixels :: proc(scroll: i32, dir: ScrollDir) {
+    x, y: i32
+    switch dir {
+    case .Down:
+        for y = height_res - scroll - 1; y >= 0 ; y -= 1 {
+            for x = 0; x < width_res; x += 1 {
+                vm.display[(y+scroll)*width_res + x] = vm.display[y*width_res + x]
+            }
+        }
+        for y = 0; y < scroll; y += 1 {
+            for x = 0; x < width_res; x += 1 do vm.display[y*width_res + x] = 0
+        }
+
+    case .Right:
+        for y = 0; y < height_res ; y += 1 {
+            for x = width_res - scroll - 1; x >= 0; x -= 1 {
+                vm.display[y*width_res + (x+scroll)] = vm.display[y*width_res + x]
+            }
+        }
+
+    case .Left:
+        for y = 0; y < height_res ; y += 1 {
+            for x = 0; x < width_res - scroll - 1; x += 1 {
+                vm.display[y*width_res + x] = vm.display[y*width_res + (x+scroll)]
+            }
+        }
+    case .Up:
+        return
+    }
 }
 
 draw_sprite :: proc(x, y: u8, sprite: []byte) -> (flag: byte) {
@@ -113,7 +139,7 @@ draw_sprite :: proc(x, y: u8, sprite: []byte) -> (flag: byte) {
             if pixel := pixels[j]; pixel != 0 do flag |= set_pixel(pos_d, pixel)
 
             when ODIN_DEBUG {
-                fmt.printfln("pixel %x, %x set to %x", pos_x, pos_y, vm.display[pos_d])
+                fmt.printfln("pixel %x, %x set to %x", pos_x, pos_y, display[pos_d])
             }
         }
     }
@@ -121,14 +147,7 @@ draw_sprite :: proc(x, y: u8, sprite: []byte) -> (flag: byte) {
 }
 
 get_pixels :: proc(pixels: []byte, value: byte) {
-    if bool(value & 0x80) do pixels[0] = 0xff 
-    if bool(value & 0x40) do pixels[1] = 0xff 
-    if bool(value & 0x20) do pixels[2] = 0xff 
-    if bool(value & 0x10) do pixels[3] = 0xff 
-    if bool(value & 0x08) do pixels[4] = 0xff 
-    if bool(value & 0x04) do pixels[5] = 0xff 
-    if bool(value & 0x02) do pixels[6] = 0xff 
-    if bool(value & 0x01) do pixels[7] = 0xff 
+    for i in 0..=7 do if bool(value & (0x80 >> u8(i))) do pixels[i] = 0xff 
 }
 
 set_pixel :: proc(index: u16, pixel: byte) -> (flag: byte) {

@@ -11,7 +11,6 @@ Chip8 :: struct {
     memory: [0x1000]byte,
     stack: [32]byte,
     vregs: [16]byte,
-    res: [2]byte,
     delay, sound: byte,
     i, pc, sp: u12,
     wait: bool,

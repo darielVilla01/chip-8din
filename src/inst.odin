@@ -8,39 +8,9 @@ u12 :: distinct u16
 F :: 15
 
 /// Instructions
-scroll_down :: proc(n: u4) {
-    scroll := int(n)
-    width := cast(int)vm.res.x
-    height := cast(int)vm.res.y
-    for y := height - scroll - 1; y >= 0 ; y -= 1 {
-         for x := 0; x < width; x += 1 {
-             vm.display[(y+scroll)*width + x] = vm.display[y*width + x]
-         }
-    }
-    for y := 0; y < scroll; y += 1 {
-        for x := 0; x < width; x += 1 do vm.display[y*width + x] = 0
-    }
-}
-scroll_right :: proc() {
-    scroll := 4
-    width := cast(int)vm.res.x
-    height := cast(int)vm.res.y
-    for y := 0; y < height ; y += 1 {
-         for x := width - scroll - 1; x >= 0; x -= 1 {
-             vm.display[y*width + (x+scroll)] = vm.display[y*width + x]
-         }
-    }
-}
-scroll_left :: proc() {
-    scroll := 4
-    width := cast(int)vm.res.x
-    height := cast(int)vm.res.y
-    for y := 0; y < height ; y += 1 {
-         for x := 0; x < width - scroll - 1; x += 1 {
-             vm.display[y*width + x] = vm.display[y*width + (x+scroll)]
-         }
-    }
-}
+scroll_down :: proc(n: u4) { scroll_pixels(i32(n), .Down) }
+scroll_right :: proc() { scroll_pixels(4, .Right) }
+scroll_left :: proc() { scroll_pixels(4, .Left) }
 clear :: proc() { for &pixel in vm.display do pixel = 0 }
 ret :: proc() {
     hi := u12(vm.stack[vm.sp + 1]) << 8
