@@ -89,7 +89,8 @@ set_delay :: proc(x: u4) { vm.delay = vm.vregs[x] }
 set_sound :: proc(x: u4) { vm.sound = vm.vregs[x] }
 get_delay :: proc(x: u4) { vm.vregs[x] = vm.delay}
 add_i_vx :: proc(x: u4) { vm.i += u12(vm.vregs[x]) }
-hex :: proc(x: u4) { vm.i = 0x100 + (u12(vm.vregs[x]) * 5) }
+hex :: proc(x: u4) { vm.i = 0x50 + (u12(vm.vregs[x]) * 5) }
+bighex :: proc(x: u4) { vm.i = 0x100 + (u12(vm.vregs[x]) * 10) }
 bcd :: proc(x: u4) {
     vm.memory[vm.i] = vm.vregs[x] / 100
     vm.memory[vm.i + 1] = (vm.vregs[x] / 10) % 10
@@ -102,6 +103,12 @@ save :: proc(x: u4) {
 load_vx :: proc(x: u4) {
     for i: u12 = 0; i <= u12(x); i += 1 do vm.vregs[i] = vm.memory[vm.i + i]
     if vm.variant != .SUPER do vm.i += u12(x) + 1
+}
+saveflags :: proc(x: u4) {
+    for i: u12 = 0; i <= u12(x); i += 1 do vm.flags[i] = vm.vregs[i]
+}
+loadflags :: proc(x: u4) {
+    for i: u12 = 0; i <= u12(x); i += 1 do vm.vregs[i] = vm.flags[i]
 }
 
 /// Instruction groups
