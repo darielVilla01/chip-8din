@@ -91,12 +91,17 @@ scroll_pixels :: proc(scroll: i32, dir: ScrollDir) {
 }
 
 draw_sprite :: proc(x, y: u8, sprite: []byte) -> (flag: byte) {
-    for i := 0; i < len(sprite); i += 1 {
-        pixels: [8]byte
-        value := sprite[i]
-        get_pixels(pixels[:], value)
+    pixels: [16]byte
+    big_sprite := len(sprite) > 16
+    inc, sprite_width := 1, 8
+    
+    if big_sprite do inc, sprite_width = 2, 16
+    for i := 0; i < len(sprite); i += inc {
+        get_pixels(pixels[:8], sprite[i])
+        if big_sprite do get_pixels(pixels[8:], sprite[i+1])
+
         if vm.variant != .XO && y < cast(u8)height_res && y + u8(i) >= cast(u8)height_res do break
-        for j in 0..<8 {
+        for j in 0..<sprite_width {
             if vm.variant != .XO && x < cast(u8)width_res && x + u8(j) >= cast(u8)width_res do break
             pos_x := i32(x + u8(j)) % width_res
             pos_y := i32(y + u8(i)) % height_res
@@ -112,7 +117,7 @@ draw_sprite :: proc(x, y: u8, sprite: []byte) -> (flag: byte) {
 }
 
 get_pixels :: proc(pixels: []byte, value: byte) {
-    for i in 0..=7 do if bool(value & (0x80 >> u8(i))) do pixels[i] = 0xff 
+    for i in 0..=7 do pixels[i] = bool(value & (0x80 >> u8(i))) ? 0xff: 0
 }
 
 set_pixel :: proc(index: u16, pixel: byte) -> (flag: byte) {
