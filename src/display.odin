@@ -71,37 +71,43 @@ scroll_pixels :: proc(scroll: i32, dir: ScrollDir) {
         for y = 0; y < scroll; y += 1 {
             for x = 0; x < width_res; x += 1 do vm.display[y*width_res + x] = 0
         }
-
     case .Right:
-        for y = 0; y < height_res ; y += 1 {
-            for x = width_res - scroll - 1; x >= 0; x -= 1 {
+        for x = width_res - scroll - 1; x >= 0; x -= 1 {
+            for y = 0; y < height_res ; y += 1 {
                 vm.display[y*width_res + (x+scroll)] = vm.display[y*width_res + x]
             }
         }
-
+        for x = 0; x < scroll; x += 1 {
+            for y = 0; y < height_res; y += 1 do vm.display[y*width_res + x] = 0
+        }
     case .Left:
-        for y = 0; y < height_res ; y += 1 {
-            for x = 0; x < width_res - scroll - 1; x += 1 {
+        for x = 0; x < width_res - scroll - 1; x += 1 {
+            for y = 0; y < height_res ; y += 1 {
                 vm.display[y*width_res + x] = vm.display[y*width_res + (x+scroll)]
             }
         }
+        for x = width_res - scroll; x < width_res; x += 1 {
+            for y = 0; y < height_res; y += 1 do vm.display[y*width_res + x] = 0
+        }
     case .Up:
-        return
+        for y = 0; y <= height_res - scroll - 1 ; y += 1 {
+            for x = 0; x < width_res; x += 1 {
+                vm.display[y*width_res + x] = vm.display[(y+scroll)*width_res + x]
+            }
+        }
+        for y = height_res - scroll; y < height_res; y += 1 {
+            for x = 0; x < width_res; x += 1 do vm.display[y*width_res + x] = 0
+        }
     }
 }
 
 draw_sprite :: proc(x, y: u8, sprite: []byte) -> (flag: byte) {
-    pixels: [16]byte
-    big_sprite := len(sprite) > 16
-    inc, sprite_width := 1, 8
-    
-    if big_sprite do inc, sprite_width = 2, 16
-    for i := 0; i < len(sprite); i += inc {
-        get_pixels(pixels[:8], sprite[i])
-        if big_sprite do get_pixels(pixels[8:], sprite[i+1])
-
+    for i := 0; i < len(sprite); i += 1 {
+        pixels: [8]byte
+        value := sprite[i]
+        get_pixels(pixels[:], value)
         if vm.variant != .XO && y < cast(u8)height_res && y + u8(i) >= cast(u8)height_res do break
-        for j in 0..<sprite_width {
+        for j in 0..<8 {
             if vm.variant != .XO && x < cast(u8)width_res && x + u8(j) >= cast(u8)width_res do break
             pos_x := i32(x + u8(j)) % width_res
             pos_y := i32(y + u8(i)) % height_res
@@ -117,7 +123,7 @@ draw_sprite :: proc(x, y: u8, sprite: []byte) -> (flag: byte) {
 }
 
 get_pixels :: proc(pixels: []byte, value: byte) {
-    for i in 0..=7 do pixels[i] = bool(value & (0x80 >> u8(i))) ? 0xff: 0
+    for i in 0..=7 do if bool(value & (0x80 >> u8(i))) do pixels[i] = 0xff 
 }
 
 set_pixel :: proc(index: u16, pixel: byte) -> (flag: byte) {

@@ -37,6 +37,7 @@ hex_font: []byte = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // f
 }
 
+@(private="file")
 bighex_font: []byte = {
     0xFF, 0xFF, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xFF, 0xFF, // 0
     0x18, 0x78, 0x78, 0x18, 0x18, 0x18, 0x18, 0x18, 0xFF, 0xFF, // 1
@@ -97,6 +98,14 @@ execute_instruction :: proc(opcode: u16) {
         if vm.variant != .CHIP_8 {
             n := get_n_value(opcode)
             scroll_down(n)
+        } else {
+            fmt.printfln("Invalid opcode %X", opcode)
+            vm.pc = 0
+        }
+    case 0x00d0..=0x00df:
+        if vm.variant == .XO {
+            n := get_n_value(opcode)
+            scroll_up(n)
         } else {
             fmt.printfln("Invalid opcode %X", opcode)
             vm.pc = 0

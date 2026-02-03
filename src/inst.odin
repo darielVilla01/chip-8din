@@ -9,6 +9,7 @@ F :: 15
 
 /// Instructions
 scroll_down :: proc(n: u4) { scroll_pixels(i32(n), .Down) }
+scroll_up :: proc(n: u4) { scroll_pixels(i32(n), .Up) }
 scroll_right :: proc() { scroll_pixels(4, .Right) }
 scroll_left :: proc() { scroll_pixels(4, .Left) }
 clear :: proc() { for &pixel in vm.display do pixel = 0 }
