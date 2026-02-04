@@ -29,8 +29,26 @@ beql_vx_nn :: proc(x: u4, nn:u8) { if vm.vregs[x] == nn do vm.pc += 2}
 bneq_vx_nn :: proc(x: u4, nn:u8) { if vm.vregs[x] != nn do vm.pc += 2}
 beql_vx_vy :: proc(x: u4, y:u4) { if vm.vregs[x] == vm.vregs[y] do vm.pc += 2}
 bneq_vx_vy :: proc(x: u4, y:u4) { if vm.vregs[x] != vm.vregs[y] do vm.pc += 2}
-load_vx_nn :: proc(x: u4, nn: u8) { vm.vregs[x] = nn }
-load_vx_vy :: proc(x: u4, y: u4) { vm.vregs[x] = vm.vregs[y] }
+save_vx_vy :: proc(x: u4, y: u4) { 
+    index := vm.i
+    begin := x < y ? x: y
+    end := y > x ? y: x
+    for i := begin; i <= end; i += 1 { 
+        vm.memory[index] = vm.vregs[i] 
+        index += 1
+    }
+}
+load_vx_vy :: proc(x: u4, y: u4) { 
+    index := vm.i
+    begin := x < y ? x: y
+    end := y > x ? y: x
+    for i := begin; i <= end; i += 1 { 
+        vm.vregs[i] = vm.memory[index]
+        index += 1
+    }
+}
+set_vx_nn :: proc(x: u4, nn: u8) { vm.vregs[x] = nn }
+set_vx_vy :: proc(x: u4, y: u4) { vm.vregs[x] = vm.vregs[y] }
 or :: proc(x: u4, y:u4) { 
     vm.vregs[x] |= vm.vregs[y] 
     if vm.variant == .CHIP_8 do vm.vregs[F] = 0
@@ -69,7 +87,7 @@ shiftl :: proc(x: u4, y:u4) {
     vm.vregs[x] = temp << 1
     vm.vregs[F] = (temp & 0x80) >> 7
 }
-load_i_nnn :: proc(nnn: u12) { vm.i = nnn }
+set_i_nnn :: proc(nnn: u12) { vm.i = nnn }
 jump_nnn :: proc(nnn: u12) { vm.pc = nnn }
 jump_vx_nnn :: proc(x: u4, nnn: u12) { vm.pc = (nnn + u12(vm.vregs[x])) % 0x1000 }
 rand :: proc(x: u4, nn: u8) { vm.vregs[x] = cast(u8)rand.uint_max(256) & nn }
@@ -97,7 +115,7 @@ bcd :: proc(x: u4) {
     vm.memory[vm.i + 1] = (vm.vregs[x] / 10) % 10
     vm.memory[vm.i + 2] = vm.vregs[x] % 10
 }
-save :: proc(x: u4) {
+save_vx :: proc(x: u4) {
     for i: u12 = 0; i <= u12(x); i += 1 do vm.memory[vm.i + i] = vm.vregs[i]
     if vm.variant != .SUPER do vm.i += u12(x) + 1
 }
@@ -125,11 +143,18 @@ jump :: proc{
     jump_nnn,
     jump_vx_nnn
 }
+set :: proc{
+    set_vx_nn,
+    set_vx_vy,
+    set_i_nnn
+}
+save :: proc{
+    save_vx,
+    save_vx_vy
+}
 load :: proc{
-    load_vx_nn,
-    load_vx_vy,
-    load_i_nnn,
-    load_vx
+    load_vx,
+    load_vx_vy
 }
 add :: proc{
     add_vx_nn,

@@ -161,15 +161,17 @@ execute_instruction :: proc(opcode: u16) {
     case 0x5000..=0x5fff:
         x := get_vx_register(opcode)
         y := get_vy_register(opcode) 
-        if n := get_n_value(opcode); n == 0 { beql(x, y) }
-        else {
+        if n := get_n_value(opcode); n == 0 { beql(x, y) } else
+        if vm.variant == .XO && n == 2 { save(x, y) } else
+        if vm.variant == .XO && n == 3 { load(x, y) } else 
+        {
             fmt.printfln("opcode %X not implemented", opcode)
             vm.pc = 0
         }
     case 0x6000..=0x6fff:
         x := get_vx_register(opcode)
         nn := get_nn_value(opcode)
-        load(x, nn)
+        set(x, nn)
     case 0x7000..=0x7fff:
         x := get_vx_register(opcode)
         nn := get_nn_value(opcode)
@@ -178,7 +180,7 @@ execute_instruction :: proc(opcode: u16) {
         x := get_vx_register(opcode)
         y := get_vy_register(opcode) 
         n := get_n_value(opcode)
-        if n == 0 { load(x, y) } else
+        if n == 0 { set(x, y) } else
         if n == 1 { or(x, y) } else
         if n == 2 { and(x, y) } else
         if n == 3 { xor(x, y) } else
@@ -201,7 +203,7 @@ execute_instruction :: proc(opcode: u16) {
         }
     case 0xa000..=0xafff:
         nnn := get_nnn_addr(opcode)
-        load(nnn)
+        set(nnn)
     case 0xb000..=0xbfff:
         nnn :=  get_nnn_addr(opcode)
         if vm.variant != .SUPER { 
@@ -238,10 +240,16 @@ execute_instruction :: proc(opcode: u16) {
         if nn == 0x18 { set_sound(x) } else
         if nn == 0x1e { add(x) } else
         if nn == 0x29 { hex(x) } else
-        if nn == 0x30 { bighex(x) } else
         if nn == 0x33 { bcd(x) } else
         if nn == 0x55 { save(x) } else
         if nn == 0x65 { load(x) } else
+        if vm.variant == .CHIP_8
+        {
+            fmt.printfln("Invalid opcode %X", opcode)
+            vm.pc = 0
+        } 
+        else
+        if nn == 0x30 { bighex(x) } else
         if nn == 0x75 { saveflags(x) } else
         if nn == 0x85 { loadflags(x) } else
         {
